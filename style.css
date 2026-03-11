@@ -357,6 +357,25 @@ a:hover{text-decoration:underline}
 .todo-relative.urgent{color:var(--red)}
 .todo-relative.soon{color:var(--orange)}
 
+/* Countdown bar per todo item */
+.todo-countdown{
+  margin-top:6px;display:flex;align-items:center;gap:var(--sp-2);
+}
+.countdown-track{
+  flex:1;height:3px;background:var(--surface-3);border-radius:2px;overflow:hidden;
+}
+.countdown-fill{
+  height:100%;border-radius:2px;transition:width 400ms cubic-bezier(0.16,1,0.3,1);
+}
+.countdown-fill.safe{background:var(--accent)}
+.countdown-fill.warning{background:var(--orange)}
+.countdown-fill.danger{background:var(--red)}
+.countdown-fill.done{background:var(--green)}
+.countdown-label{
+  font-family:var(--font-mono);font-size:var(--text-2xs);color:var(--text-faint);
+  white-space:nowrap;min-width:40px;text-align:right;
+}
+
 .todo-delete{
   padding:var(--sp-1);border-radius:var(--radius);color:var(--text-faint);
   transition:all var(--ease);opacity:0;font-size:var(--text-sm);flex-shrink:0;margin-top:1px;

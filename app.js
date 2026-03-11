@@ -114,6 +114,40 @@
     return "";
   }
 
+  // Countdown bar: calculates how much time has elapsed between creation and due date
+  function countdownInfo(created, due) {
+    if (!due) return null;
+    const now = new Date();
+    now.setHours(12, 0, 0, 0); // use noon to avoid edge cases
+    const dueDate = new Date(due + "T23:59:59");
+    const createDate = new Date(created);
+    createDate.setHours(0, 0, 0, 0);
+
+    const totalMs = dueDate - createDate;
+    const elapsedMs = now - createDate;
+
+    if (totalMs <= 0) {
+      // Due date is same day or before creation — treat as 100%
+      return { pct: 100, status: now > dueDate ? "danger" : "warning" };
+    }
+
+    const pct = Math.min(100, Math.max(0, Math.round((elapsedMs / totalMs) * 100)));
+
+    let status = "safe";
+    if (now > dueDate) status = "danger";
+    else if (pct >= 80) status = "warning";
+    else if (pct >= 50) status = "warning";
+
+    // Refine: <50% = safe, 50-80% = warning, >80% = danger
+    if (now <= dueDate) {
+      if (pct < 50) status = "safe";
+      else if (pct < 80) status = "warning";
+      else status = "danger";
+    }
+
+    return { pct, status };
+  }
+
   // ===== COLOR & ICON PALETTES =====
   const COLORS = [
     { name: "blue", hex: "#3b82f6" },
@@ -409,6 +443,7 @@
           ${items.map(t => {
     const rel = relativeTime(t.due);
     const rc = relativeClass(t.due);
+    const cd = t.due ? countdownInfo(t.created, t.due) : null;
     return `
             <div class="todo-item ${t.done ? "completed" : ""}" data-id="${t.id}">
               <div class="todo-check ${t.done ? "done" : ""}" data-toggle="${t.id}"></div>
@@ -420,6 +455,8 @@
                   ${t.priority === "low" ? "<span class=\"tag tag-low\">LOW</span>" : ""}
                   ${data.folders.length > 1 && t.folder && t.folder !== "Inbox" ? `<span class="tag tag-folder">${esc(t.folder)}</span>` : ""}
                 </div>
+                ${cd && !t.done ? `<div class="todo-countdown"><div class="countdown-track"><div class="countdown-fill ${cd.status}" style="width:${cd.pct}%"></div></div><span class="countdown-label">${cd.pct}%</span></div>` : ""}
+                ${cd && t.done ? `<div class="todo-countdown"><div class="countdown-track"><div class="countdown-fill done" style="width:100%"></div></div><span class="countdown-label">✓</span></div>` : ""}
               </div>
               ${t.due && !t.done ? `<span class="todo-relative ${rc}">${rel}</span>` : ""}
               <button class="todo-delete" data-del="${t.id}" title="Delete">\u2715</button>
