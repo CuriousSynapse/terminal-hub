@@ -251,6 +251,7 @@
         .links-list { display: flex; flex-direction: column; gap: var(--sp-2); }
         .link-item { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); transition: all var(--ease); animation: slideIn 200ms ease; }
         .link-item:hover { border-color: var(--border-hover); background: var(--surface-3); }
+        .link-item:focus { border-color: var(--accent); background: var(--surface-3); box-shadow: 0 0 0 2px var(--accent-dim); }
 
         .progress-section { margin-bottom: var(--sp-6); }
         .progress-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-2); }
@@ -653,7 +654,7 @@
                                 <p style="font-size:var(--text-xs);color:var(--text-faint)">💡 Tip: Links are clickable! Try "open 0" in terminal to open the first link.</p>
                             </div>
                         ` : links.map((l, idx) => `
-                            <div class="link-item" data-id="${l.id}" style="cursor:pointer" data-link="${esc(l.path)}">
+                            <div class="link-item" data-id="${l.id}" style="cursor:pointer;outline:none" data-link="${esc(l.path)}">
                                 <div style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-faint);width:24px">${idx}</div>
                                 <div style="font-size:1.2rem;flex-shrink:0">${getLinkIcon(l.path)}</div>
                                 <div style="flex:1;min-width:0">
@@ -715,6 +716,13 @@
                     const url = el.dataset.link;
                     openLink(url);
                 });
+                el.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.target.closest('[data-del-link]')) {
+                        const url = el.dataset.link;
+                        openLink(url);
+                    }
+                });
+                el.setAttribute('tabindex', '0');
             });
 
             document.querySelectorAll('[data-del-link]').forEach(el => {
@@ -736,8 +744,13 @@
             if (url.match(/^https?:\/\//i)) {
                 window.open(url, '_blank', 'noopener,noreferrer');
                 showToast('Opening link...');
+            } else if (url.match(/^file:\/\//i)) {
+                window.open(url, '_blank');
+                showToast('Opening file...');
             } else {
-                showToast(`File path: ${url}`);
+                const fileUrl = 'file:///' + url.replace(/\\/g, '/');
+                window.open(fileUrl, '_blank');
+                showToast(`Opening: ${url}`);
             }
         }
 
